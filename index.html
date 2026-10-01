@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sailing Licence Studies</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    margin:0;
+    background:#f4f8fb;
+    color:#1d3557;
+}
+
+header{
+    background:#0d3b66;
+    color:white;
+    text-align:center;
+    padding:40px 20px;
+}
+
+header h1{
+    margin:0;
+}
+
+.search-container{
+    text-align:center;
+    margin:20px;
+}
+
+input{
+    width:90%;
+    max-width:500px;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.playlists{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:20px;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+.card img{
+    width:100%;
+    display:block;
+}
+
+.card-content{
+    padding:15px;
+}
+
+.card h3{
+    margin-top:0;
+}
+
+.btn{
+    display:inline-block;
+    background:#0077b6;
+    color:white;
+    text-decoration:none;
+    padding:10px 16px;
+    border-radius:6px;
+}
+
+footer{
+    text-align:center;
+    padding:30px;
+    color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>⛵ Sailing Licence Studies</h1>
+    <p>Navigation, COLREGS, Weather, VHF, Seamanship and Safety Playlists</p>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchBox" placeholder="Search playlists...">
+</div>
+
+<div id="playlistContainer" class="playlists"></div>
+
+<footer>
+    Powered by YouTube Data API
+</footer>
+
+<script>
+
+const API_KEY = "AIzaSyDv7Xd36-JHcV4HEOFGLJCJdSEUGEOpcsc";
+
+const CHANNEL_ID = "UCxW3HOGohT5DyQJjjnm5iLA";
+
+const KEYWORDS = [
+    "sailing",
+    "skipper",
+    "navigation",
+    "colregs",
+    "marine",
+    "weather",
+    "vhf",
+    "nautical",
+    "safety",
+    "seamanship",
+    "yacht",
+    "boat",
+    "משיט",
+    "שייט",
+    "ימאות",
+    "ניווט"
+];
+
+let playlists=[];
+
+async function getPlaylists(){
+
+    let nextPageToken="";
+    let all=[];
+
+    do{
+        let url =
+        `https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&channelId=${CHANNEL_ID}&maxResults=50&pageToken=${nextPageToken}&key=${API_KEY}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if(data.items){
+            all.push(...data.items);
+        }
+
+        nextPageToken = data.nextPageToken || "";
+
+    }while(nextPageToken);
+
+    playlists = all.filter(p=>{
+
+        const text =
+        (p.snippet.title + " " + p.snippet.description)
+        .toLowerCase();
+
+        return KEYWORDS.some(k=>text.includes(k.toLowerCase()));
+    });
+
+    renderPlaylists(playlists);
+}
+
+function renderPlaylists(items){
+
+    const container =
+        document.getElementById("playlistContainer");
+
+    container.innerHTML="";
+
+    items.forEach(p=>{
+
+        const thumb =
+            p.snippet.thumbnails.high?.url ||
+            p.snippet.thumbnails.medium?.url;
+
+        const div=document.createElement("div");
+        div.className="card";
+
+        div.innerHTML=`
+            <img src="${thumb}" alt="">
+            <div class="card-content">
+                <h3>${p.snippet.title}</h3>
+                <p>
+                    Videos:
+                    ${p.contentDetails.itemCount}
+                </p>
+                <a class="btn"
+                   target="_blank"
+                   href="https://www.youtube.com/playlist?list=${p.id}">
+                   Open Playlist
+                </a>
+            </div>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+document
+.getElementById("searchBox")
+.addEventListener("input",function(){
+
+    const q=this.value.toLowerCase();
+
+    renderPlaylists(
+        playlists.filter(p=>
+            p.snippet.title
+            .toLowerCase()
+            .includes(q)
+        )
+    );
+});
+
+getPlaylists();
+
+</script>
+
+</body>
+</html>
