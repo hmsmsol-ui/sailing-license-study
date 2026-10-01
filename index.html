@@ -145,14 +145,7 @@ async function getPlaylists(){
 
     }while(nextPageToken);
 
-    playlists = all.filter(p=>{
-
-        const text =
-        (p.snippet.title + " " + p.snippet.description)
-        .toLowerCase();
-
-        return KEYWORDS.some(k=>text.includes(k.toLowerCase()));
-    });
+    playlists = all;
 
     renderPlaylists(playlists);
 }
